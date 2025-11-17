@@ -1,242 +1,380 @@
-// Calculateur de Résistances - ElectroTech
+let counter = 0;
 
-// État global de l'application
-let resistances = [];
-let resistanceCounter = 0;
-
-// Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    init();
 });
 
-function initializeApp() {
-    // Ajouter les écouteurs d'événements
-    document.getElementById('add-resistance').addEventListener('click', addResistance);
-    document.getElementById('calculate-btn').addEventListener('click', calculateResults);
-    document.getElementById('reset-btn').addEventListener('click', resetCalculator);
+function init() {
+    document.getElementById('add-item').addEventListener('click', addItem);
+    document.getElementById('calculate').addEventListener('click', calculate);
+    document.getElementById('reset').addEventListener('click', reset);
     
-    // Initialiser avec 2 résistances par défaut
-    addResistance();
-    addResistance();
-    
-    // Navigation toggle pour mobile
-    const navToggle = document.querySelector('.nav-toggle');
-    const nav = document.querySelector('.nav');
-    
-    if (navToggle) {
-        navToggle.addEventListener('click', function() {
-            const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
-            navToggle.setAttribute('aria-expanded', !isExpanded);
-            nav.classList.toggle('open');
-        });
-    }
-    
-    // Fermer le menu mobile lors du clic sur un lien
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            nav.classList.remove('open');
-            navToggle.setAttribute('aria-expanded', 'false');
-        });
-    });
-    
-    // Smooth scroll pour les ancres
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
+    addItem();
+    addItem();
+    addItem();
 }
 
-// Ajouter une nouvelle résistance
-function addResistance() {
-    resistanceCounter++;
-    const id = `resistance-${resistanceCounter}`;
+function addItem() {
+    counter++;
+    const id = `item-${counter}`;
     
-    const resistanceItem = document.createElement('div');
-    resistanceItem.className = 'resistance-item';
-    resistanceItem.id = id;
-    resistanceItem.innerHTML = `
-        <div class="resistance-label">
-            <i class="fa-solid fa-microchip"></i>
-            <span>R${resistanceCounter}</span>
+    const item = document.createElement('div');
+    item.className = 'item';
+    item.id = id;
+    item.innerHTML = `
+        <div class="item-field">
+            <div class="label">
+                <i class="fa-solid fa-microchip"></i>
+                <span>R${counter}</span>
+            </div>
+            <div class="input-group">
+                <input 
+                    type="number" 
+                    class="input-resistance" 
+                    placeholder="Valeur de R${counter}" 
+                    min="0" 
+                    step="0.01"
+                    data-id="${id}"
+                    data-type="resistance"
+                >
+                <span class="unit">Ω</span>
+            </div>
         </div>
-        <div class="resistance-input-group">
-            <input 
-                type="number" 
-                class="resistance-input" 
-                placeholder="Entrez la valeur" 
-                min="0" 
-                step="0.01"
-                data-id="${id}"
-            >
-            <span class="resistance-unit">Ω</span>
+        <div class="item-field">
+            <div class="label">
+                <i class="fa-solid fa-bolt"></i>
+                <span>U${counter}</span>
+            </div>
+            <div class="input-group">
+                <input 
+                    type="number" 
+                    class="input-voltage" 
+                    placeholder="Valeur de U${counter}" 
+                    min="0" 
+                    step="0.01"
+                    data-id="${id}"
+                    data-type="voltage"
+                >
+                <span class="unit">V</span>
+            </div>
         </div>
-        <button class="btn-remove" onclick="removeResistance('${id}')">
+        <button class="btn-remove" onclick="removeItem('${id}')">
             <i class="fa-solid fa-trash"></i>
         </button>
     `;
     
-    document.getElementById('resistances-list').appendChild(resistanceItem);
+    document.getElementById('items-list').appendChild(item);
     
-    // Ajouter l'animation d'apparition
     setTimeout(() => {
-        resistanceItem.style.animation = 'fadeIn 0.3s ease-in';
+        item.style.animation = 'fadeIn 0.3s ease-in';
     }, 10);
 }
 
-// Supprimer une résistance
-function removeResistance(id) {
+function removeItem(id) {
     const item = document.getElementById(id);
-    if (item && document.querySelectorAll('.resistance-item').length > 1) {
+    if (item && document.querySelectorAll('.item').length > 1) {
         item.style.animation = 'fadeOut 0.3s ease-out';
         setTimeout(() => {
             item.remove();
+            renumber();
         }, 300);
     } else {
-        showNotification('Vous devez avoir au moins une résistance', 'warning');
+        notify('Vous devez avoir au moins une résistance', 'warning');
     }
 }
 
-// Calculer les résultats
-function calculateResults() {
-    const inputs = document.querySelectorAll('.resistance-input');
-    const values = [];
+function renumber() {
+    const items = document.querySelectorAll('.item');
+    counter = items.length;
     
-    // Récupérer et valider les valeurs
-    let hasError = false;
-    inputs.forEach(input => {
-        const value = parseFloat(input.value);
-        if (isNaN(value) || value <= 0) {
-            input.style.borderColor = '#e74c3c';
-            hasError = true;
-        } else {
-            input.style.borderColor = '';
-            values.push(value);
+    items.forEach((item, index) => {
+        const num = index + 1;
+        
+        const fields = item.querySelectorAll('.item-field');
+        const rField = fields[0];
+        const uField = fields[1];
+        
+        if (rField) {
+            const rLabel = rField.querySelector('.label span');
+            const rInput = rField.querySelector('.input-resistance');
+            if (rLabel) rLabel.textContent = `R${num}`;
+            if (rInput) rInput.placeholder = `Valeur de R${num}`;
+        }
+        
+        if (uField) {
+            const uLabel = uField.querySelector('.label span');
+            const uInput = uField.querySelector('.input-voltage');
+            if (uLabel) uLabel.textContent = `U${num}`;
+            if (uInput) uInput.placeholder = `Valeur de U${num}`;
         }
     });
+}
+
+function calculate() {
+    const voltage = parseFloat(document.getElementById('voltage').value) || null;
+    const current = parseFloat(document.getElementById('current').value) || null;
+    const totalR = parseFloat(document.getElementById('total-resistance').value) || null;
     
-    if (hasError || values.length === 0) {
-        showNotification('Veuillez entrer des valeurs valides pour toutes les résistances', 'error');
+    const items = document.querySelectorAll('.item');
+    const resistances = [];
+    const voltages = [];
+    
+    items.forEach((item) => {
+        const rInput = item.querySelector('.input-resistance');
+        const uInput = item.querySelector('.input-voltage');
+        
+        const r = parseFloat(rInput.value) || null;
+        const u = parseFloat(uInput.value) || null;
+        
+        resistances.push(r);
+        voltages.push(u);
+    });
+    
+    const allValues = [voltage, current, totalR, ...resistances, ...voltages].filter(v => v !== null && v > 0);
+    if (allValues.length < 2) {
+        notify('Veuillez entrer au moins 2 valeurs valides pour effectuer un calcul', 'warning');
         return;
     }
     
-    // Obtenir le type de calcul
-    const calcType = document.getElementById('calc-type').value;
+    const data = {
+        voltage: voltage,
+        current: current,
+        totalR: totalR,
+        resistances: [...resistances],
+        voltages: [...voltages]
+    };
     
-    let totalResistance;
-    let formula;
+    try {
+        if (data.totalR === null) {
+            const known = data.resistances.filter(r => r !== null && r > 0);
+            if (known.length === data.resistances.length && known.length > 0) {
+                data.totalR = known.reduce((sum, r) => sum + r, 0);
+            }
+        }
+        
+        if (data.current === null && data.voltage !== null && data.voltage > 0 && data.totalR !== null && data.totalR > 0) {
+            data.current = data.voltage / data.totalR;
+        }
+        
+        if (data.voltage === null && data.current !== null && data.current > 0 && data.totalR !== null && data.totalR > 0) {
+            data.voltage = data.totalR * data.current;
+        }
+        
+        if (data.totalR === null && data.voltage !== null && data.voltage > 0 && data.current !== null && data.current > 0) {
+            data.totalR = data.voltage / data.current;
+        }
+        
+        const knownV = data.voltages.filter(v => v !== null && v > 0);
+        if (data.voltage === null && knownV.length === data.voltages.length && knownV.length > 0) {
+            data.voltage = knownV.reduce((sum, v) => sum + v, 0);
+        }
+        
+        if (data.current !== null && data.current > 0) {
+            for (let i = 0; i < data.resistances.length; i++) {
+                if (data.resistances[i] === null && data.voltages[i] !== null && data.voltages[i] > 0) {
+                    data.resistances[i] = data.voltages[i] / data.current;
+                }
+            }
+        }
+        
+        if (data.current !== null && data.current > 0) {
+            for (let i = 0; i < data.voltages.length; i++) {
+                if (data.voltages[i] === null && data.resistances[i] !== null && data.resistances[i] > 0) {
+                    data.voltages[i] = data.resistances[i] * data.current;
+                }
+            }
+        }
+        
+        if (data.current === null && data.voltage !== null && data.voltage > 0) {
+            for (let i = 0; i < data.resistances.length; i++) {
+                if (data.resistances[i] !== null && data.resistances[i] > 0 && 
+                    data.voltages[i] !== null && data.voltages[i] > 0) {
+                    data.current = data.voltages[i] / data.resistances[i];
+                    break;
+                }
+            }
+        }
+        
+        if (data.totalR !== null && data.totalR > 0) {
+            const knownR = data.resistances.filter(r => r !== null && r > 0);
+            const unknownIdx = [];
+            data.resistances.forEach((r, idx) => {
+                if (r === null || r <= 0) unknownIdx.push(idx);
+            });
+            
+            if (unknownIdx.length === 1) {
+                const sumKnown = knownR.reduce((sum, r) => sum + r, 0);
+                data.resistances[unknownIdx[0]] = data.totalR - sumKnown;
+            }
+        }
+        
+        if (data.voltage !== null && data.voltage > 0) {
+            const knownV = data.voltages.filter(v => v !== null && v > 0);
+            const unknownIdx = [];
+            data.voltages.forEach((v, idx) => {
+                if (v === null || v <= 0) unknownIdx.push(idx);
+            });
+            
+            if (unknownIdx.length === 1) {
+                const sumKnown = knownV.reduce((sum, v) => sum + v, 0);
+                data.voltages[unknownIdx[0]] = data.voltage - sumKnown;
+            }
+        }
+        
+        if (data.current === null) {
+            for (let i = 0; i < data.resistances.length; i++) {
+                if (data.resistances[i] !== null && data.resistances[i] > 0 && 
+                    data.voltages[i] !== null && data.voltages[i] > 0) {
+                    data.current = data.voltages[i] / data.resistances[i];
+                    break;
+                }
+            }
+        }
+        
+        if (data.current !== null && data.current > 0) {
+            for (let i = 0; i < data.resistances.length; i++) {
+                if (data.resistances[i] === null && data.voltages[i] !== null && data.voltages[i] > 0) {
+                    data.resistances[i] = data.voltages[i] / data.current;
+                }
+            }
+            for (let i = 0; i < data.voltages.length; i++) {
+                if (data.voltages[i] === null && data.resistances[i] !== null && data.resistances[i] > 0) {
+                    data.voltages[i] = data.resistances[i] * data.current;
+                }
+            }
+        }
+        
+        display(data);
+        
+    } catch (error) {
+        notify('Erreur lors du calcul. Vérifiez vos valeurs.', 'error');
+        console.error(error);
+    }
+}
+
+function display(data) {
+    const section = document.getElementById('results-section');
+    const content = document.getElementById('results-content');
     
-    switch (calcType) {
-        case 'series':
-            totalResistance = calculateSeries(values);
-            formula = `R<sub>total</sub> = ${values.map((v, i) => `R${i+1}`).join(' + ')} = ${values.join(' + ')} = ${totalResistance.toFixed(2)} Ω`;
-            break;
-            
-        case 'parallel':
-            totalResistance = calculateParallel(values);
-            formula = `1/R<sub>total</sub> = ${values.map((v, i) => `1/R${i+1}`).join(' + ')} = ${values.map(v => `1/${v}`).join(' + ')} ⟹ R<sub>total</sub> = ${totalResistance.toFixed(2)} Ω`;
-            break;
-            
-        case 'mixed':
-            // Pour le mode mixte, on fait série par défaut (peut être amélioré)
-            totalResistance = calculateSeries(values);
-            formula = `Mode mixte : R<sub>total</sub> = ${totalResistance.toFixed(2)} Ω (calcul série par défaut)`;
-            break;
+    function format(value, unit) {
+        if (value === null) return null;
+        
+        if (Math.abs(value) < 0.001 && Math.abs(value) > 0) {
+            const exp = Math.floor(Math.log10(Math.abs(value)));
+            const mant = value / Math.pow(10, exp);
+            return `${mant.toFixed(3)} × 10<sup>${exp}</sup> ${unit}`;
+        } else if (Math.abs(value) < 0.01) {
+            return value.toFixed(6) + ' ' + unit;
+        } else if (Math.abs(value) < 0.1) {
+            return value.toFixed(5) + ' ' + unit;
+        } else if (Math.abs(value) < 1) {
+            return value.toFixed(4) + ' ' + unit;
+        } else if (Math.abs(value) < 10) {
+            return value.toFixed(3) + ' ' + unit;
+        } else {
+            return value.toFixed(2) + ' ' + unit;
+        }
     }
     
-    // Calcul du courant (avec V = 12V par défaut)
-    const voltage = 12;
-    const current = voltage / totalResistance;
+    let html = '<div class="results-grid">';
     
-    // Calcul de la puissance (P = V × I)
-    const power = voltage * current;
+    html += `
+    <div class="card glass">
+        <div class="icon"><i class="fa-solid fa-bolt"></i></div>
+        <h3>Tension Totale (U)</h3>
+        <p class="value">${data.voltage !== null ? format(data.voltage, 'V') : '<span class="unavailable">Pas assez de valeurs</span>'}</p>
+    </div>`;
     
-    // Afficher les résultats
-    displayResults(totalResistance, current, power, formula);
-}
-
-// Calcul en série
-function calculateSeries(values) {
-    return values.reduce((sum, value) => sum + value, 0);
-}
-
-// Calcul en parallèle
-function calculateParallel(values) {
-    const inverseSum = values.reduce((sum, value) => sum + (1 / value), 0);
-    return 1 / inverseSum;
-}
-
-// Afficher les résultats
-function displayResults(resistance, current, power, formula) {
-    const resultsSection = document.getElementById('results-section');
+    html += `
+    <div class="card glass">
+        <div class="icon"><i class="fa-solid fa-arrow-right"></i></div>
+        <h3>Courant (I)</h3>
+        <p class="value">${data.current !== null ? format(data.current, 'A') : '<span class="unavailable">Pas assez de valeurs</span>'}</p>
+    </div>`;
     
-    // Mettre à jour les valeurs
-    document.getElementById('total-resistance').textContent = `${resistance.toFixed(2)} Ω`;
-    document.getElementById('total-current').textContent = `${current.toFixed(3)} A`;
-    document.getElementById('total-power').textContent = `${power.toFixed(2)} W`;
-    document.getElementById('formula-text').innerHTML = formula;
+    html += `
+    <div class="card glass">
+        <div class="icon"><i class="fa-solid fa-microchip"></i></div>
+        <h3>Résistance Totale (R<sub>tot</sub>)</h3>
+        <p class="value">${data.totalR !== null ? format(data.totalR, 'Ω') : '<span class="unavailable">Pas assez de valeurs</span>'}</p>
+    </div>`;
     
-    // Afficher la section des résultats avec animation
-    resultsSection.style.display = 'block';
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    html += '</div>';
     
-    // Animation des cartes de résultats
-    const resultCards = resultsSection.querySelectorAll('.result-card');
-    resultCards.forEach((card, index) => {
+    html += '<div class="individual">';
+    html += '<h3><i class="fa-solid fa-list"></i> Valeurs Individuelles</h3>';
+    html += '<div class="individual-grid">';
+    
+    for (let i = 0; i < data.resistances.length; i++) {
+        html += `<div class="individual-item">`;
+        html += `<div class="individual-header">R${i+1} / U${i+1}</div>`;
+        
+        if (data.resistances[i] !== null) {
+            html += `<div class="individual-value">R${i+1} = ${format(data.resistances[i], 'Ω')}</div>`;
+        } else {
+            html += `<div class="individual-value unavailable">R${i+1} = Pas assez de valeurs</div>`;
+        }
+        
+        if (data.voltages[i] !== null) {
+            html += `<div class="individual-value">U${i+1} = ${format(data.voltages[i], 'V')}</div>`;
+        } else {
+            html += `<div class="individual-value unavailable">U${i+1} = Pas assez de valeurs</div>`;
+        }
+        
+        html += `</div>`;
+    }
+    
+    html += '</div></div>';
+    
+    content.innerHTML = html;
+    
+    section.style.display = 'block';
+    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    const cards = section.querySelectorAll('.card');
+    cards.forEach((card, index) => {
         setTimeout(() => {
             card.style.animation = 'slideIn 0.4s ease-out';
         }, index * 100);
     });
     
-    showNotification('Calculs effectués avec succès !', 'success');
+    notify('Calculs effectués avec succès !', 'success');
 }
 
-// Réinitialiser le calculateur
-function resetCalculator() {
-    // Réinitialiser les valeurs
-    const inputs = document.querySelectorAll('.resistance-input');
+function reset() {
+    document.getElementById('voltage').value = '';
+    document.getElementById('current').value = '';
+    document.getElementById('total-resistance').value = '';
+    
+    const inputs = document.querySelectorAll('.input-resistance, .input-voltage');
     inputs.forEach(input => {
         input.value = '';
         input.style.borderColor = '';
     });
     
-    // Cacher les résultats
-    const resultsSection = document.getElementById('results-section');
-    resultsSection.style.display = 'none';
+    const section = document.getElementById('results-section');
+    section.style.display = 'none';
     
-    // Réinitialiser le sélecteur
-    document.getElementById('calc-type').value = 'series';
-    
-    // Supprimer toutes les résistances sauf les 2 premières
-    const resistanceItems = document.querySelectorAll('.resistance-item');
-    resistanceItems.forEach((item, index) => {
-        if (index > 1) {
+    const items = document.querySelectorAll('.item');
+    items.forEach((item, index) => {
+        if (index > 2) {
             item.remove();
         }
     });
     
-    showNotification('Calculateur réinitialisé', 'info');
+    counter = 3;
+    
+    notify('Calculateur réinitialisé', 'info');
 }
 
-// Système de notifications
-function showNotification(message, type = 'info') {
-    // Supprimer toute notification existante
-    const existingNotif = document.querySelector('.notification');
-    if (existingNotif) {
-        existingNotif.remove();
+function notify(message, type = 'info') {
+    const existing = document.querySelector('.notification');
+    if (existing) {
+        existing.remove();
     }
     
-    // Créer la nouvelle notification
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
+    const notif = document.createElement('div');
+    notif.className = `notification notification-${type}`;
     
     let icon;
     switch(type) {
@@ -253,28 +391,25 @@ function showNotification(message, type = 'info') {
             icon = 'fa-circle-info';
     }
     
-    notification.innerHTML = `
+    notif.innerHTML = `
         <i class="fa-solid ${icon}"></i>
         <span>${message}</span>
     `;
     
-    document.body.appendChild(notification);
+    document.body.appendChild(notif);
     
-    // Afficher avec animation
     setTimeout(() => {
-        notification.classList.add('show');
+        notif.classList.add('show');
     }, 10);
     
-    // Masquer et supprimer après 3 secondes
     setTimeout(() => {
-        notification.classList.remove('show');
+        notif.classList.remove('show');
         setTimeout(() => {
-            notification.remove();
+            notif.remove();
         }, 300);
     }, 3000);
 }
 
-// Animations CSS à ajouter dynamiquement
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeIn {
@@ -312,9 +447,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Validation en temps réel des entrées
 document.addEventListener('input', function(e) {
-    if (e.target.classList.contains('resistance-input')) {
+    if (e.target.classList.contains('input-resistance')) {
         const value = parseFloat(e.target.value);
         if (isNaN(value) || value <= 0) {
             e.target.style.borderColor = '#e74c3c';
@@ -324,15 +458,14 @@ document.addEventListener('input', function(e) {
     }
 });
 
-// Calcul automatique lors de la pression sur Enter
 document.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && e.target.classList.contains('resistance-input')) {
-        calculateResults();
+    if (e.key === 'Enter' && e.target.classList.contains('input-resistance')) {
+        calculate();
     }
 });
 
-// Exporter les fonctions pour qu'elles soient accessibles globalement
-window.addResistance = addResistance;
-window.removeResistance = removeResistance;
-window.calculateResults = calculateResults;
-window.resetCalculator = resetCalculator;
+window.addItem = addItem;
+window.removeItem = removeItem;
+window.calculate = calculate;
+window.reset = reset;
+window.renumber = renumber;
