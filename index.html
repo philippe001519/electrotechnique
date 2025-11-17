@@ -3,104 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ElectroTech - Calculateur de Résistances</title>
+    <title>Electrotechnique</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Background FX overlay -->
-    <div class="bg fx-overlay"></div>
+    <div class="bg overlay"></div>
 
-    <!-- Main content -->
     <main class="container">
-
-        <!-- Calculator section -->
         <section class="calculator-section">
-            <div class="calc-controls glass">
-                <div class="calc-header">
+            <div class="controls glass">
+                <div class="header">
                     <h2>
                         <i class="fa-solid fa-sliders"></i>
-                        Configuration
+                        Circuit en Série
                     </h2>
-                    <div class="calc-mode">
-                        <label for="calc-type">Type de circuit:</label>
-                        <select id="calc-type" class="mode-select">
-                            <option value="series">Série</option>
-                            <option value="parallel">Parallèle</option>
-                            <option value="mixed">Mixte</option>
-                        </select>
+                </div>
+                
+                <div class="main-values">
+                    <h3><i class="fa-solid fa-bolt"></i> Valeurs Principales</h3>
+                    <div class="main-grid">
+                        <div class="field">
+                            <label for="voltage">Tension totale (U)</label>
+                            <div class="input-group">
+                                <input type="number" id="voltage" placeholder="Entrez la valeur" step="0.01">
+                                <span class="unit">V</span>
+                            </div>
+                        </div>
+                        
+                        <div class="field">
+                            <label for="current">Courant (I)</label>
+                            <div class="input-group">
+                                <input type="number" id="current" placeholder="Entrez la valeur" step="0.001">
+                                <span class="unit">A</span>
+                            </div>
+                        </div>
+                        
+                        <div class="field">
+                            <label for="total-resistance">Résistance totale (R<sub>tot</sub>)</label>
+                            <div class="input-group">
+                                <input type="number" id="total-resistance" placeholder="Entrez la valeur" step="0.01">
+                                <span class="unit">Ω</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="resistances-container">
-                    <div class="resistances-header">
-                        <h3>Résistances</h3>
-                        <button class="btn primary" id="add-resistance">
+                <div class="items-container">
+                    <div class="items-header">
+                        <h3><i class="fa-solid fa-microchip"></i> Résistances et Tensions</h3>
+                        <button class="btn primary" id="add-item">
                             <i class="fa-solid fa-plus"></i>
                             Ajouter
                         </button>
                     </div>
                     
-                    <div id="resistances-list" class="resistances-list">
-                        <!-- Résistances will be added dynamically -->
-                    </div>
+                    <div id="items-list" class="items-list"></div>
                 </div>
                 
-                <div class="calc-actions">
-                    <button class="btn primary" id="calculate-btn">
+                <div class="actions">
+                    <button class="btn primary" id="calculate">
                         <i class="fa-solid fa-calculator"></i>
                         Calculer
                     </button>
-                    <button class="btn ghost" id="reset-btn">
+                    <button class="btn ghost" id="reset">
                         <i class="fa-solid fa-rotate-right"></i>
                         Réinitialiser
                     </button>
                 </div>
             </div>
             
-            <!-- Results section -->
-            <div class="calc-results glass" id="results-section" style="display: none;">
+            <div class="results glass" id="results-section" style="display: none;">
                 <div class="results-header">
                     <h2>
                         <i class="fa-solid fa-chart-line"></i>
-                        Résultats
+                        Résultats Calculés
                     </h2>
                 </div>
                 
-                <div class="results-grid">
-                    <div class="result-card glass">
-                        <div class="result-icon">
-                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                        </div>
-                        <h3>Résistance Totale</h3>
-                        <p class="result-value" id="total-resistance">0 Ω</p>
-                    </div>
-                    
-                    <div class="result-card glass">
-                        <div class="result-icon">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
-                        <h3>Courant Total</h3>
-                        <p class="result-value" id="total-current">0 A</p>
-                        <p class="result-note">(avec V = 12V)</p>
-                    </div>
-                    
-                    <div class="result-card glass">
-                        <div class="result-icon">
-                            <i class="fa-solid fa-fire"></i>
-                        </div>
-                        <h3>Puissance Dissipée</h3>
-                        <p class="result-value" id="total-power">0 W</p>
-                    </div>
-                </div>
-                
-                <div class="formula-display">
-                    <h4>
-                        <i class="fa-solid fa-function"></i>
-                        Formule utilisée
-                    </h4>
-                    <p id="formula-text" class="formula-text"></p>
-                </div>
+                <div id="results-content"></div>
             </div>
         </section>
     </main>
